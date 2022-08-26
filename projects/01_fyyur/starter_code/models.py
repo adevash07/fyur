@@ -12,7 +12,7 @@ class Venue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     city = db.Column(db.String(120))
-    genres = db.Column(db.String())
+    genres = db.Column(db.ARRAY(db.String()), nullable=False)
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
@@ -21,7 +21,7 @@ class Venue(db.Model):
     website_link = db.Column(db.String(120))
     looking_for_talent = db.Column(db.Boolean)
     description = db.Column(db.String(500))
-    venue_shows = db.relationship('Show', back_populates='venue', lazy='dynamic')
+    venue_shows = db.relationship('Show', back_populates='venue', lazy='joined', cascade='all, delete-orphan')
    
  
     def __repr__(self):
@@ -37,54 +37,17 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String()), )
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120), nullable=True)
     looking_for_venue = db.Column(db.Boolean, default=False)
     description = db.Column(db.String(120), nullable=True)
-    artist_shows = db.relationship('Show', back_populates='artist', lazy=True)
+    artist_shows = db.relationship('Show', back_populates='artist', lazy='joined', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Artist {self.id} {self.name}>'
     
-    @property
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'city': self.city,
-            'state': self.state,
-            'phone': self.phone,
-            'genres': self.genres.split(','),
-            'image_link': self.image_link,
-            'facebook_link': self.facebook_link,
-            'website_link': self.website_link,
-            'looking_for_venue': self.looking_for_venue,
-            'description': self.description,
-        }
-    @property
-    def to_dict_with_shows(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'city': self.city,
-            'state': self.state,
-            'phone': self.phone,
-            'genres': self.genres.split(','),
-            'image_link': self.image_link,
-            'facebook_link': self.facebook_link,
-            'website_link': self.website_link,
-            'looking_for_venue': self.looking_for_venue,
-            'description': self.description,
-            'upcoming_shows': [show.to_dict for show in self.shows.filter(Show.start_time > datetime.now())],
-            'upcoming_shows_count': len(self.shows.filter(Show.start_time > datetime.now())),
-            'past_shows': [show.to_dict for show in self.shows.filter(Show.start_time < datetime.now())],
-            'past_shows_count': len(self.shows.filter(Show.start_time < datetime.now())),
-        }
-        
-    def __repr__(self):
-        return f'<Artist {self.id} {self.name}>'
         
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
